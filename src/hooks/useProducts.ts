@@ -28,6 +28,15 @@ export function useProducts() {
     await apiClient.post('/products', input)
     await fetchProducts()
   }
+    async function updateProduct(id: string, input: CreateProductInput) {
+    await apiClient.patch(`/products/${id}`, input)
+    await fetchProducts()
+  }
 
-  return { products, isLoading, error, createProduct, refetch: fetchProducts }
+  async function deleteProduct(id: string) {
+    await apiClient.delete(`/products/${id}`)
+    await fetchProducts()
+  }
+
+  return { products, isLoading, error, createProduct, updateProduct, deleteProduct, refetch: fetchProducts }
 }
