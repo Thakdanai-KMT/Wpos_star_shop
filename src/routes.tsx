@@ -4,6 +4,10 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import AppLayout from './components/layout/AppLayout'
 import ProductsPage from './pages/ProductsPage'
+import CategoriesPage from './pages/CategoriesPage'
+import InventoryPage from './pages/InventoryPage'
+import PosPage from './pages/PosPage'
+// import PosPage from './pages/PosPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth()
@@ -33,6 +37,9 @@ export default function AppRoutes() {
       >
         <Route index element={<DashboardPage />} />
         <Route path="products" element={<ProductsPage />} />
+        <Route path="categories" element={<CategoriesPage />} />
+        <Route path="inventory" element={<InventoryPage />} />
+        <Route path="pos" element={<PosPage />} />
       </Route>
     </Routes>
   )
