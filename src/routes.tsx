@@ -7,6 +7,9 @@ import ProductsPage from './pages/ProductsPage'
 import CategoriesPage from './pages/CategoriesPage'
 import InventoryPage from './pages/InventoryPage'
 import PosPage from './pages/PosPage'
+import SalesHistoryPage from './pages/SalesHistoryPage'
+import CustomersPage from './pages/CustomersPage'
+import PromotionsPage from './pages/PromotionsPage'
 // import PosPage from './pages/PosPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -40,6 +43,9 @@ export default function AppRoutes() {
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="inventory" element={<InventoryPage />} />
         <Route path="pos" element={<PosPage />} />
+        <Route path="sales" element={<SalesHistoryPage />} />
+        <Route path="customers" element={<CustomersPage />} />  
+        <Route path="promotions" element={<PromotionsPage />} />
       </Route>
     </Routes>
   )

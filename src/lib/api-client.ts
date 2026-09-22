@@ -5,11 +5,18 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 export class ApiError extends Error {
   statusCode: number
   error: string
+  details: Record<string, unknown>
 
-  constructor(statusCode: number, message: string, error: string) {
+  constructor(
+    statusCode: number,
+    message: string,
+    error: string,
+    details: Record<string, unknown> = {}
+  ) {
     super(message)
     this.statusCode = statusCode
     this.error = error
+    this.details = details
   }
 }
 
@@ -43,7 +50,8 @@ async function request<T>(
     throw new ApiError(
       body.statusCode ?? response.status,
       body.message ?? 'Something went wrong',
-      body.error ?? 'Error'
+      body.error ?? 'Error',
+      body
     )
   }
 
