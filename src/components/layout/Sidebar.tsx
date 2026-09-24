@@ -22,7 +22,11 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'ตั้งค่า', path: '/settings', roles: ['ADMIN', 'MANAGER', 'CASHIER', 'VIEWER'] },
 ]
 
-export default function Sidebar() {
+interface SidebarProps {
+  onNavigate?: () => void
+}
+
+export default function Sidebar({ onNavigate }: SidebarProps) {
   const { user } = useAuth()
 
   const visibleItems = NAV_ITEMS.filter(
@@ -30,16 +34,25 @@ export default function Sidebar() {
   )
 
   return (
-    <aside className="w-56 bg-gray-900 text-gray-100 min-h-screen p-4">
-      <h2 className="text-lg font-bold mb-6">Wpos Star Shop</h2>
-      <nav className="flex flex-col gap-1">
+    <aside className="w-64 bg-brand-900 text-white/90 min-h-screen flex flex-col">
+      <div className="px-5 py-6 border-b border-white/10">
+        <p className="text-gold-500 text-xs font-semibold tracking-wide">
+          WPOS STAR SHOP
+        </p>
+        <p className="text-white text-sm mt-0.5">ระบบจัดการร้านค้า</p>
+      </div>
+
+      <nav className="flex-1 flex flex-col gap-0.5 p-3">
         {visibleItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
+            onClick={onNavigate}
             className={({ isActive }) =>
-              `px-3 py-2 rounded text-sm ${
-                isActive ? 'bg-blue-600' : 'hover:bg-gray-800'
+              `px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                isActive
+                  ? 'bg-gold-500 text-brand-900 font-medium'
+                  : 'text-white/70 hover:bg-white/10 hover:text-white'
               }`
             }
           >
