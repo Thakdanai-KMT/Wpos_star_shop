@@ -1,1 +1,25 @@
 @import "tailwindcss";
+@theme {
+  --font-sans: "IBM Plex Sans Thai", ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: #eef0f7;
+  --color-brand-100: #d4d9ea;
+  --color-brand-600: #2a3563;
+  --color-brand-700: #1f284d;
+  --color-brand-900: #1b2340;
+
+  --color-gold-400: #f2c369;
+  --color-gold-500: #e8a33d;
+  --color-gold-600: #c9862a;
+
+  --color-ink-900: #171a2b;
+  --color-ink-600: #545a72;
+
+  --color-surface: #f6f7fb;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface);
+  color: var(--color-ink-900);
+}
