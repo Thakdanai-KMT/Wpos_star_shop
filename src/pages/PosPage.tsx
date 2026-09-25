@@ -3,6 +3,9 @@ import { QRCodeSVG } from 'qrcode.react'
 import { getPromptPayPayload } from '../lib/promptpay'
 import { useProducts } from '../hooks/useProducts'
 import { useCategories } from '../hooks/useCategories'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import { Input, Select } from '../components/ui/Input'
 
 import type {
   CartItem,
@@ -217,111 +220,121 @@ export default function PosPage() {
   // =========================================================
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col gap-6 lg:flex-row">
       {/* =====================================================
           Products
       ====================================================== */}
 
-      <div className="flex-1">
-        <h1 className="mb-4 text-2xl font-bold">
+      <div className="min-w-0 flex-1">
+        <h1 className="mb-4 text-2xl font-semibold text-ink-900">
           ขายสินค้า
         </h1>
 
-        <input
-          type="text"
-          placeholder="ค้นหาสินค้า..."
-          value={searchTerm}
-          onChange={(event) =>
-            setSearchTerm(event.target.value)
-          }
-          className="mb-4 w-full max-w-sm rounded border px-3 py-2"
-        />
+        {/* =====================================================
+            Sticky search + category bar
+            (ปักหมุดไว้บนสุดของโซนสินค้า กันไม่ต้องเลื่อนกลับขึ้นมา
+            เวลาต้องพิมพ์ค้นหาหรือสลับหมวดหมู่ใหม่ เมื่อรายการสินค้าเยอะ)
+        ====================================================== */}
+        <div className="sticky top-0 z-10 -mx-1 bg-surface px-1 pb-3 pt-1">
+          <Input
+            type="text"
+            placeholder="ค้นหาสินค้า..."
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            className="mb-3 max-w-sm"
+            icon={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                className="h-4 w-4"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+            }
+          />
 
-        <div className="mb-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setSelectedCategoryId(null)}
-            className={`rounded-full px-3 py-1 text-sm ${
-              selectedCategoryId === null
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700'
-            }`}
-          >
-            ทั้งหมด
-          </button>
-
-          {categories.map((category) => (
+          <div className="flex gap-2 overflow-x-auto pb-1">
             <button
               type="button"
-              key={category.id}
-              onClick={() =>
-                setSelectedCategoryId(category.id)
-              }
-              className={`rounded-full px-3 py-1 text-sm ${
-                selectedCategoryId === category.id
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700'
+              onClick={() => setSelectedCategoryId(null)}
+              className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors duration-150 ${
+                selectedCategoryId === null
+                  ? 'bg-gold-500 text-brand-900'
+                  : 'bg-brand-50 text-ink-600 hover:bg-brand-100'
               }`}
             >
-              {category.category_name}
+              ทั้งหมด
             </button>
-          ))}
+
+            {categories.map((category) => (
+              <button
+                type="button"
+                key={category.id}
+                onClick={() => setSelectedCategoryId(category.id)}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors duration-150 ${
+                  selectedCategoryId === category.id
+                    ? 'bg-gold-500 text-brand-900'
+                    : 'bg-brand-50 text-ink-600 hover:bg-brand-100'
+                }`}
+              >
+                {category.category_name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {isLoading && (
-          <p className="mb-4 text-gray-500">
-            กำลังโหลดสินค้า...
-          </p>
+          <p className="mb-4 text-sm text-ink-600">กำลังโหลดสินค้า...</p>
         )}
 
-        {error && (
-          <p className="mb-4 text-red-600">
-            {error}
-          </p>
-        )}
+        {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-          {filteredProducts.map((product) => {
-            const isOutOfStock =
-              product.stock_quantity <= 0
+        {/* =====================================================
+            Product grid — scroll เฉพาะโซนนี้ ไม่ใช่ทั้งหน้า
+            (แถบค้นหา/หมวดหมู่ด้านบนจึงอยู่นิ่งเสมอ)
+        ====================================================== */}
+        <div className="max-h-[calc(100vh-260px)] overflow-y-auto pr-1">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+            {filteredProducts.map((product) => {
+              const isOutOfStock = product.stock_quantity <= 0
 
-            return (
-              <button
-                type="button"
-                key={product.id}
-                onClick={() =>
-                  addToCart(product.id)
-                }
-                disabled={isOutOfStock}
-                className="rounded bg-white p-4 text-left shadow hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <p className="font-medium">
-                  {product.product_name}
-                </p>
-
-                <p className="text-sm text-gray-500">
-                  {product.unit_price.toLocaleString()} บาท
-                </p>
-
-                <p className="text-xs text-gray-400">
-                  สต็อก: {product.stock_quantity}
-                </p>
-
-                {isOutOfStock && (
-                  <p className="mt-1 text-xs font-medium text-red-500">
-                    สินค้าหมด
+              return (
+                <button
+                  type="button"
+                  key={product.id}
+                  onClick={() => addToCart(product.id)}
+                  disabled={isOutOfStock}
+                  className="rounded-lg border border-black/5 bg-white p-4 text-left shadow-sm transition-colors duration-150 hover:border-gold-400 hover:bg-brand-50/40 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-black/5 disabled:hover:bg-white"
+                >
+                  <p className="font-medium text-ink-900">
+                    {product.product_name}
                   </p>
-                )}
-              </button>
-            )
-          })}
 
-          {filteredProducts.length === 0 &&
-            !isLoading && (
-              <p className="col-span-full text-gray-400">
-                ไม่พบสินค้า
-              </p>
+                  <p className="text-sm text-ink-600">
+                    {product.unit_price.toLocaleString()} บาท
+                  </p>
+
+                  <p className="text-xs text-ink-600/70">
+                    สต็อก: {product.stock_quantity}
+                  </p>
+
+                  {isOutOfStock && (
+                    <p className="mt-1 text-xs font-medium text-red-500">
+                      สินค้าหมด
+                    </p>
+                  )}
+                </button>
+              )
+            })}
+
+            {filteredProducts.length === 0 && !isLoading && (
+              <p className="col-span-full text-ink-600/70">ไม่พบสินค้า</p>
             )}
+          </div>
         </div>
       </div>
 
@@ -329,169 +342,129 @@ export default function PosPage() {
           Cart
       ====================================================== */}
 
-      <div className="h-fit w-72 rounded bg-white p-4 shadow">
-        <h2 className="mb-3 font-bold">
-          ตะกร้า ({cartTotalItems} ชิ้น)
-        </h2>
+      <div className="w-full lg:w-80 lg:shrink-0">
+        <Card className="p-4 lg:sticky lg:top-4">
+          <h2 className="mb-3 font-semibold text-ink-900">
+            ตะกร้า ({cartTotalItems} ชิ้น)
+          </h2>
 
-        <ul className="mb-4 space-y-3">
-          {cart.map((item) => (
-            <li
-              key={item.product_id}
-              className="border-b pb-2 text-sm"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <span className="font-medium">
-                  {item.product_name}
-                </span>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    removeFromCart(item.product_id)
-                  }
-                  className="text-xs text-red-500 hover:underline"
-                >
-                  ลบ
-                </button>
-              </div>
-
-              <div className="mt-1 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      updateQuantity(
-                        item.product_id,
-                        -1,
-                      )
-                    }
-                    className="h-6 w-6 rounded bg-gray-200 hover:bg-gray-300"
-                  >
-                    -
-                  </button>
-
-                  <span className="min-w-5 text-center">
-                    {item.quantity}
+          <ul className="mb-4 space-y-3">
+            {cart.map((item) => (
+              <li
+                key={item.product_id}
+                className="border-b border-brand-100 pb-2 text-sm"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className="font-medium text-ink-900">
+                    {item.product_name}
                   </span>
 
                   <button
                     type="button"
-                    onClick={() =>
-                      updateQuantity(
-                        item.product_id,
-                        1,
-                      )
-                    }
-                    className="h-6 w-6 rounded bg-gray-200 hover:bg-gray-300"
+                    onClick={() => removeFromCart(item.product_id)}
+                    className="text-xs text-red-500 hover:underline"
                   >
-                    +
+                    ลบ
                   </button>
                 </div>
 
-                <span className="text-gray-600">
-                  {(
-                    item.unit_price *
-                    item.quantity
-                  ).toLocaleString()}{' '}
-                  บาท
-                </span>
+                <div className="mt-1 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(item.product_id, -1)}
+                      className="flex h-6 w-6 items-center justify-center rounded bg-brand-50 text-ink-900 transition-colors duration-150 hover:bg-brand-100"
+                    >
+                      -
+                    </button>
+
+                    <span className="min-w-5 text-center text-ink-900">
+                      {item.quantity}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(item.product_id, 1)}
+                      className="flex h-6 w-6 items-center justify-center rounded bg-brand-50 text-ink-900 transition-colors duration-150 hover:bg-brand-100"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <span className="text-ink-600">
+                    {(item.unit_price * item.quantity).toLocaleString()} บาท
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {cart.length === 0 && (
+            <p className="text-sm text-ink-600/70">ยังไม่มีสินค้าในตะกร้า</p>
+          )}
+
+          {/* =================================================
+              Payment
+          ================================================== */}
+
+          {cart.length > 0 && (
+            <form onSubmit={handleSell} className="border-t border-brand-100 pt-3">
+              <div className="mb-3 flex items-center justify-between text-lg font-bold text-ink-900">
+                <span>ยอดรวม</span>
+                <span>{cartTotal.toLocaleString()} บาท</span>
               </div>
-            </li>
-          ))}
-        </ul>
 
-        {cart.length === 0 && (
-          <p className="text-sm text-gray-400">
-            ยังไม่มีสินค้าในตะกร้า
-          </p>
-        )}
-
-        {/* ===================================================
-            Payment
-        ==================================================== */}
-
-        {cart.length > 0 && (
-          <form
-            onSubmit={handleSell}
-            className="border-t pt-3"
-          >
-            <div className="mb-3 flex items-center justify-between text-lg font-bold">
-              <span>ยอดรวม</span>
-
-              <span>
-                {cartTotal.toLocaleString()} บาท
-              </span>
-            </div>
-
-            <label
-              htmlFor="payment-method"
-              className="mb-1 block text-sm"
-            >
-              วิธีชำระเงิน
-            </label>
-
-            <select
-              id="payment-method"
-              value={paymentMethod}
-              onChange={(event) =>
-                setPaymentMethod(
-                  event.target.value as PaymentMethod,
-                )
-              }
-              disabled={isSelling}
-              className="mb-3 w-full rounded border px-2 py-1"
-            >
-              <option value="CASH">
-                เงินสด
-              </option>
-
-              <option value="TRANSFER">
-                โอนเงิน
-              </option>
-
-              <option value="CARD">
-                บัตร
-              </option>
-            </select>
-
-            {paymentMethod === 'TRANSFER' && (
-              <div className="mb-3 flex flex-col items-center rounded border bg-gray-50 p-3">
-                <QRCodeSVG
-                  value={getPromptPayPayload(cartTotal)}
-                  size={180}
-                />
-                <p className="mt-2 text-sm text-gray-600">
-                  สแกนเพื่อชำระ {cartTotal.toLocaleString()} บาท
-                </p>
+              <div className="mb-3">
+                <Select
+                  id="payment-method"
+                  label="วิธีชำระเงิน"
+                  value={paymentMethod}
+                  onChange={(event) =>
+                    setPaymentMethod(event.target.value as PaymentMethod)
+                  }
+                  disabled={isSelling}
+                >
+                  <option value="CASH">เงินสด</option>
+                  <option value="TRANSFER">โอนเงิน</option>
+                  <option value="CARD">บัตร</option>
+                </Select>
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={isSelling || cart.length === 0}
-              className="w-full rounded bg-green-600 py-2 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isSelling
-                ? 'กำลังบันทึก...'
-                : 'ยืนยันการขาย'}
-            </button>
+              {paymentMethod === 'TRANSFER' && (
+                <div className="mb-3 flex flex-col items-center rounded-lg border border-brand-100 bg-surface p-3">
+                  <QRCodeSVG
+                    value={getPromptPayPayload(cartTotal)}
+                    size={180}
+                  />
+                  <p className="mt-2 text-sm text-ink-600">
+                    สแกนเพื่อชำระ {cartTotal.toLocaleString()} บาท
+                  </p>
+                </div>
+              )}
 
-            {sellError && (
-              <p className="mt-2 text-sm text-red-600">
-                {sellError}
-              </p>
-            )}
-          </form>
-        )}
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={isSelling || cart.length === 0}
+                className="w-full"
+              >
+                {isSelling ? 'กำลังบันทึก...' : 'ยืนยันการขาย'}
+              </Button>
 
-        {/* Success — วางไว้นอกเงื่อนไขตะกร้า
-            เพื่อให้แสดงได้แม้ตะกร้าจะถูกล้างว่างไปแล้ว */}
-        {sellSuccess && (
-          <p className="mt-3 text-sm font-medium text-green-600">
-            ขายสำเร็จ! ✓
-          </p>
-        )}
+              {sellError && (
+                <p className="mt-2 text-sm text-red-600">{sellError}</p>
+              )}
+            </form>
+          )}
+
+          {/* Success — วางไว้นอกเงื่อนไขตะกร้า
+              เพื่อให้แสดงได้แม้ตะกร้าจะถูกล้างว่างไปแล้ว */}
+          {sellSuccess && (
+            <p className="mt-3 text-sm font-medium text-green-600">
+              ขายสำเร็จ! ✓
+            </p>
+          )}
+        </Card>
       </div>
     </div>
   )
