@@ -5,6 +5,9 @@ import { useCategories } from '../hooks/useCategories'
 import { useAuth } from '../contexts/AuthContext'
 import { ApiError } from '../lib/api-client'
 import type { Product } from '../types/product'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import { Input, Select } from '../components/ui/Input'
 
 export default function ProductsPage() {
   const { products, isLoading, error, createProduct, updateProduct, deleteProduct } =
@@ -81,131 +84,136 @@ export default function ProductsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">จัดการสินค้า</h1>
+      <h1 className="mb-4 text-2xl font-semibold text-ink-900">จัดการสินค้า</h1>
 
       {canManage && (
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-4 rounded shadow mb-6 flex gap-3 items-end flex-wrap"
-        >
-          <div>
-            <label className="block text-sm mb-1">ชื่อสินค้า</label>
-            <input
-              value={productName}
-              onChange={(e) => setProductName(e.target.value)}
-              required
-              className="border rounded px-2 py-1"
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">ราคาขาย</label>
-            <input
-              type="number"
-              value={unitPrice}
-              onChange={(e) => setUnitPrice(e.target.value)}
-              required
-              className="border rounded px-2 py-1 w-28"
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">ราคาต้นทุน</label>
-            <input
-              type="number"
-              value={costPrice}
-              onChange={(e) => setCostPrice(e.target.value)}
-              required
-              className="border rounded px-2 py-1 w-28"
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">หมวดหมู่</label>
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              required
-              className="border rounded px-2 py-1"
-            >
-              <option value="">-- เลือกหมวดหมู่ --</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.category_name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+        <Card className="mb-6 p-4">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-wrap items-end gap-3"
           >
-            {isSubmitting
-              ? 'กำลังบันทึก...'
-              : editingId
-                ? 'บันทึกการแก้ไข'
-                : 'เพิ่มสินค้า'}
-          </button>
-          {editingId && (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="px-4 py-2 rounded border"
-            >
-              ยกเลิก
-            </button>
-          )}
-          {formError && <p className="text-red-600 text-sm w-full">{formError}</p>}
-        </form>
+            <div className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1">
+              <Input
+                label="ชื่อสินค้า"
+                value={productName}
+                onChange={(e) => setProductName(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="w-28">
+              <Input
+                label="ราคาขาย"
+                type="number"
+                value={unitPrice}
+                onChange={(e) => setUnitPrice(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="w-28">
+              <Input
+                label="ราคาต้นทุน"
+                type="number"
+                value={costPrice}
+                onChange={(e) => setCostPrice(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="w-full sm:w-auto sm:min-w-[180px]">
+              <Select
+                label="หมวดหมู่"
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                required
+              >
+                <option value="">-- เลือกหมวดหมู่ --</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.category_name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            <Button type="submit" variant="primary" disabled={isSubmitting}>
+              {isSubmitting
+                ? 'กำลังบันทึก...'
+                : editingId
+                  ? 'บันทึกการแก้ไข'
+                  : 'เพิ่มสินค้า'}
+            </Button>
+
+            {editingId && (
+              <Button type="button" variant="secondary" onClick={resetForm}>
+                ยกเลิก
+              </Button>
+            )}
+
+            {formError && (
+              <p className="w-full text-sm text-red-600">{formError}</p>
+            )}
+          </form>
+        </Card>
       )}
 
-      {isLoading && <p>กำลังโหลด...</p>}
-      {error && <p className="text-red-600">{error}</p>}
+      {isLoading && <p className="text-sm text-ink-600">กำลังโหลด...</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       {!isLoading && !error && (
-        <table className="w-full bg-white rounded shadow">
-          <thead>
-            <tr className="border-b text-left text-sm text-gray-500">
-              <th className="p-3">ชื่อสินค้า</th>
-              <th className="p-3">ราคาขาย</th>
-              <th className="p-3">ต้นทุน</th>
-              <th className="p-3">สต็อก</th>
-              {canManage && <th className="p-3">จัดการ</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((p) => (
-              <tr key={p.id} className="border-b text-sm">
-                <td className="p-3">{p.product_name}</td>
-                <td className="p-3">{p.unit_price.toLocaleString()}</td>
-                <td className="p-3">{p.cost_price.toLocaleString()}</td>
-                <td className="p-3">{p.stock_quantity}</td>
-                {canManage && (
-                  <td className="p-3 flex gap-2">
-                    <button
-                      onClick={() => startEdit(p)}
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      แก้ไข
-                    </button>
-                    <button
-                      onClick={() => handleDelete(p.id)}
-                      disabled={deletingId === p.id}
-                      className="text-red-600 hover:underline text-sm disabled:opacity-50"
-                    >
-                      {deletingId === p.id ? 'กำลังลบ...' : 'ลบ'}
-                    </button>
+        <Card className="overflow-x-auto">
+          <table className="w-full min-w-[560px]">
+            <thead>
+              <tr className="border-b border-brand-100 text-left text-sm text-ink-600">
+                <th className="p-3 font-medium">ชื่อสินค้า</th>
+                <th className="p-3 font-medium">ราคาขาย</th>
+                <th className="p-3 font-medium">ต้นทุน</th>
+                <th className="p-3 font-medium">สต็อก</th>
+                {canManage && <th className="p-3 font-medium">จัดการ</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((p) => (
+                <tr key={p.id} className="border-b border-brand-100 text-sm">
+                  <td className="p-3 text-ink-900">{p.product_name}</td>
+                  <td className="p-3 text-ink-900">{p.unit_price.toLocaleString()}</td>
+                  <td className="p-3 text-ink-900">{p.cost_price.toLocaleString()}</td>
+                  <td className="p-3 text-ink-900">{p.stock_quantity}</td>
+                  {canManage && (
+                    <td className="p-3">
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => startEdit(p)}
+                          className="text-sm text-brand-700 hover:underline"
+                        >
+                          แก้ไข
+                        </button>
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          disabled={deletingId === p.id}
+                          className="text-sm text-red-600 hover:underline disabled:opacity-50"
+                        >
+                          {deletingId === p.id ? 'กำลังลบ...' : 'ลบ'}
+                        </button>
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))}
+              {products.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={canManage ? 5 : 4}
+                    className="p-3 text-center text-ink-600/70"
+                  >
+                    ยังไม่มีสินค้า
                   </td>
-                )}
-              </tr>
-            ))}
-            {products.length === 0 && (
-              <tr>
-                <td colSpan={canManage ? 5 : 4} className="p-3 text-center text-gray-400">
-                  ยังไม่มีสินค้า
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </Card>
       )}
     </div>
   )
