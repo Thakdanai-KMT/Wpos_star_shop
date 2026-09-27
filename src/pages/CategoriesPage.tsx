@@ -4,6 +4,9 @@ import { useCategories } from '../hooks/useCategories'
 import { useAuth } from '../contexts/AuthContext'
 import { ApiError } from '../lib/api-client'
 import type { Category } from '../types/category'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import { Input } from '../components/ui/Input'
 
 export default function CategoriesPage() {
   const { categories, isLoading, error, createCategory, updateCategory, deleteCategory } =
@@ -64,85 +67,96 @@ export default function CategoriesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">จัดการหมวดหมู่</h1>
+      <h1 className="text-2xl font-semibold text-brand-900 mb-1">
+        จัดการหมวดหมู่
+      </h1>
+      <p className="text-sm text-ink-600 mb-6">
+        เพิ่ม แก้ไข และลบหมวดหมู่สินค้าในร้าน
+      </p>
 
       {canManage && (
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-4 rounded shadow mb-6 flex gap-3 items-end"
-        >
-          <div>
-            <label className="block text-sm mb-1">ชื่อหมวดหมู่</label>
-            <input
-              value={categoryName}
-              onChange={(e) => setCategoryName(e.target.value)}
-              required
-              className="border rounded px-2 py-1"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-          >
-            {isSubmitting
-              ? 'กำลังบันทึก...'
-              : editingId
-                ? 'บันทึกการแก้ไข'
-                : 'เพิ่มหมวดหมู่'}
-          </button>
-          {editingId && (
-            <button type="button" onClick={resetForm} className="px-4 py-2 rounded border">
-              ยกเลิก
-            </button>
-          )}
-          {formError && <p className="text-red-600 text-sm">{formError}</p>}
-        </form>
+        <Card className="p-5 mb-6">
+          <form onSubmit={handleSubmit} className="flex gap-3 items-end flex-wrap">
+            <div className="w-56">
+              <Input
+                id="category_name"
+                label="ชื่อหมวดหมู่"
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting
+                ? 'กำลังบันทึก...'
+                : editingId
+                  ? 'บันทึกการแก้ไข'
+                  : 'เพิ่มหมวดหมู่'}
+            </Button>
+            {editingId && (
+              <Button type="button" variant="secondary" onClick={resetForm}>
+                ยกเลิก
+              </Button>
+            )}
+            {formError && (
+              <p className="text-red-600 text-sm w-full">{formError}</p>
+            )}
+          </form>
+        </Card>
       )}
 
-      {isLoading && <p>กำลังโหลด...</p>}
-      {error && <p className="text-red-600">{error}</p>}
+      {isLoading && <p className="text-ink-600 text-sm">กำลังโหลด...</p>}
+      {error && <p className="text-red-600 text-sm">{error}</p>}
 
       {!isLoading && !error && (
-        <table className="w-full bg-white rounded shadow">
-          <thead>
-            <tr className="border-b text-left text-sm text-gray-500">
-              <th className="p-3">ชื่อหมวดหมู่</th>
-              {canManage && <th className="p-3">จัดการ</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {categories.map((c) => (
-              <tr key={c.id} className="border-b text-sm">
-                <td className="p-3">{c.category_name}</td>
+        <Card className="overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-ink-600 bg-surface">
+                <th className="p-3 font-medium">ชื่อหมวดหมู่</th>
                 {canManage && (
-                  <td className="p-3 flex gap-2">
-                    <button
-                      onClick={() => startEdit(c)}
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      แก้ไข
-                    </button>
-                    <button
-                      onClick={() => handleDelete(c.id)}
-                      disabled={deletingId === c.id}
-                      className="text-red-600 hover:underline text-sm disabled:opacity-50"
-                    >
-                      {deletingId === c.id ? 'กำลังลบ...' : 'ลบ'}
-                    </button>
-                  </td>
+                  <th className="p-3 font-medium w-32">จัดการ</th>
                 )}
               </tr>
-            ))}
-            {categories.length === 0 && (
-              <tr>
-                <td colSpan={canManage ? 2 : 1} className="p-3 text-center text-gray-400">
-                  ยังไม่มีหมวดหมู่
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {categories.map((c) => (
+                <tr key={c.id} className="border-t border-black/5">
+                  <td className="p-3 text-ink-900">{c.category_name}</td>
+                  {canManage && (
+                    <td className="p-3">
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => startEdit(c)}
+                          className="text-gold-600 hover:underline text-sm"
+                        >
+                          แก้ไข
+                        </button>
+                        <button
+                          onClick={() => handleDelete(c.id)}
+                          disabled={deletingId === c.id}
+                          className="text-red-600 hover:underline text-sm disabled:opacity-50"
+                        >
+                          {deletingId === c.id ? 'กำลังลบ...' : 'ลบ'}
+                        </button>
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))}
+              {categories.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={canManage ? 2 : 1}
+                    className="p-6 text-center text-ink-600/60"
+                  >
+                    ยังไม่มีหมวดหมู่
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </Card>
       )}
     </div>
   )
