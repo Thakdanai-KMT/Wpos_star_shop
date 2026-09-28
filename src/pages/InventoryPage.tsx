@@ -5,6 +5,15 @@ import { useInventoryMovements } from '../hooks/useInventoryMovements'
 import { useAuth } from '../contexts/AuthContext'
 import { ApiError } from '../lib/api-client'
 import type { MovementType } from '../types/inventory'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import { Input, Select } from '../components/ui/Input'
+
+const MOVEMENT_LABEL: Record<string, string> = {
+  RECEIVE: 'รับเข้า',
+  ADJUSTMENT: 'ปรับสต็อก',
+  SALE: 'ขายสินค้า',
+}
 
 export default function InventoryPage() {
   const { products, refetch: refetchProducts } = useProducts()
@@ -36,7 +45,7 @@ export default function InventoryPage() {
       })
       setQuantityChange('')
       setReason('')
-      await refetchProducts() // อัปเดตสต็อกล่าสุดในหน้า Products ด้วย
+      await refetchProducts()
     } catch (err) {
       setFormError(err instanceof ApiError ? err.message : 'บันทึกไม่สำเร็จ')
     } finally {
@@ -46,14 +55,20 @@ export default function InventoryPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">จัดการสต็อก</h1>
+      <h1 className="text-2xl font-semibold text-brand-900 mb-1">
+        จัดการสต็อก
+      </h1>
+      <p className="text-sm text-ink-600 mb-6">
+        ดูสต็อกคงเหลือ บันทึกรับสินค้าเข้า และปรับยอดสต็อก
+      </p>
 
-      <div className="mb-6">
-        <label className="block text-sm mb-1">เลือกสินค้า</label>
-        <select
+      <Card className="p-5 mb-6">
+        <Select
+          id="product"
+          label="เลือกสินค้า"
           value={selectedProductId}
           onChange={(e) => setSelectedProductId(e.target.value)}
-          className="border rounded px-2 py-1 w-64"
+          className="w-full sm:w-72"
         >
           <option value="">-- เลือกสินค้า --</option>
           {products.map((p) => (
@@ -61,108 +76,126 @@ export default function InventoryPage() {
               {p.product_name}
             </option>
           ))}
-        </select>
-      </div>
+        </Select>
+
+        {selectedProduct && (
+          <div className="mt-4 flex items-baseline gap-2">
+            <span className="text-sm text-ink-600">สต็อกคงเหลือ</span>
+            <span className="text-3xl font-semibold text-brand-900">
+              {selectedProduct.stock_quantity}
+            </span>
+            <span className="text-sm text-ink-600">ชิ้น</span>
+          </div>
+        )}
+      </Card>
 
       {selectedProduct && (
         <>
-          <p className="mb-4">
-            สต็อกปัจจุบัน:{' '}
-            <span className="font-bold">{selectedProduct.stock_quantity}</span>
-          </p>
-
           {canManage && (
-            <form
-              onSubmit={handleSubmit}
-              className="bg-white p-4 rounded shadow mb-6 flex gap-3 items-end flex-wrap"
-            >
-              <div>
-                <label className="block text-sm mb-1">ประเภท</label>
-                <select
+            <Card className="p-5 mb-6">
+              <h2 className="text-sm font-semibold text-brand-900 mb-4">
+                บันทึกการเคลื่อนไหวสต็อก
+              </h2>
+              <form
+                onSubmit={handleSubmit}
+                className="flex gap-3 items-end flex-wrap"
+              >
+                <Select
+                  id="movement_type"
+                  label="ประเภท"
                   value={movementType}
                   onChange={(e) =>
                     setMovementType(e.target.value as MovementType)
                   }
-                  className="border rounded px-2 py-1"
                 >
-                  <option value="RECEIVE">รับเข้า (RECEIVE)</option>
-                  <option value="ADJUSTMENT">ปรับสต็อก (ADJUSTMENT)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm mb-1">
-                  จำนวน (ใส่ติดลบถ้าจะลด)
-                </label>
-                <input
-                  type="number"
-                  value={quantityChange}
-                  onChange={(e) => setQuantityChange(e.target.value)}
-                  required
-                  className="border rounded px-2 py-1 w-32"
-                />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">เหตุผล (ถ้ามี)</label>
-                <input
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  className="border rounded px-2 py-1"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-              >
-                {isSubmitting ? 'กำลังบันทึก...' : 'บันทึก'}
-              </button>
-              {formError && (
-                <p className="text-red-600 text-sm w-full">{formError}</p>
-              )}
-            </form>
+                  <option value="RECEIVE">รับเข้า</option>
+                  <option value="ADJUSTMENT">ปรับสต็อก</option>
+                </Select>
+
+                <div className="w-40">
+                  <Input
+                    id="quantity_change"
+                    label="จำนวน (ติดลบ = ลด)"
+                    type="number"
+                    value={quantityChange}
+                    onChange={(e) => setQuantityChange(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="w-56">
+                  <Input
+                    id="reason"
+                    label="เหตุผล (ถ้ามี)"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                  />
+                </div>
+
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? 'กำลังบันทึก...' : 'บันทึก'}
+                </Button>
+
+                {formError && (
+                  <p className="text-red-600 text-sm w-full">{formError}</p>
+                )}
+              </form>
+            </Card>
           )}
 
-          <h2 className="font-bold mb-2">ประวัติการเคลื่อนไหว</h2>
-          {isLoading && <p>กำลังโหลด...</p>}
-          {error && <p className="text-red-600">{error}</p>}
+          <h2 className="text-sm font-semibold text-brand-900 mb-3">
+            ประวัติการเคลื่อนไหว
+          </h2>
+
+          {isLoading && <p className="text-ink-600 text-sm">กำลังโหลด...</p>}
+          {error && <p className="text-red-600 text-sm">{error}</p>}
 
           {!isLoading && !error && (
-            <table className="w-full bg-white rounded shadow">
-              <thead>
-                <tr className="border-b text-left text-sm text-gray-500">
-                  <th className="p-3">วันที่</th>
-                  <th className="p-3">ประเภท</th>
-                  <th className="p-3">จำนวนที่เปลี่ยน</th>
-                  <th className="p-3">เหตุผล</th>
-                </tr>
-              </thead>
-              <tbody>
-                {movements.map((m) => (
-                  <tr key={m.id} className="border-b text-sm">
-                    <td className="p-3">
-                      {new Date(m.created_at).toLocaleString('th-TH')}
-                    </td>
-                    <td className="p-3">{m.movement_type}</td>
-                    <td
-                      className={`p-3 font-medium ${
-                        m.quantity_change >= 0 ? 'text-green-600' : 'text-red-600'
-                      }`}
-                    >
-                      {m.quantity_change >= 0 ? '+' : ''}
-                      {m.quantity_change}
-                    </td>
-                    <td className="p-3">{m.reason ?? '-'}</td>
+            <Card className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[520px]">
+                <thead>
+                  <tr className="text-left text-ink-600 bg-surface">
+                    <th className="p-3 font-medium">วันที่</th>
+                    <th className="p-3 font-medium">ประเภท</th>
+                    <th className="p-3 font-medium">จำนวนที่เปลี่ยน</th>
+                    <th className="p-3 font-medium">เหตุผล</th>
                   </tr>
-                ))}
-                {movements.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="p-3 text-center text-gray-400">
-                      ยังไม่มีประวัติ
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {movements.map((m) => (
+                    <tr key={m.id} className="border-t border-black/5">
+                      <td className="p-3 text-ink-900">
+                        {new Date(m.created_at).toLocaleString('th-TH')}
+                      </td>
+                      <td className="p-3 text-ink-900">
+                        {MOVEMENT_LABEL[m.movement_type] ?? m.movement_type}
+                      </td>
+                      <td
+                        className={`p-3 font-medium ${
+                          m.quantity_change >= 0
+                            ? 'text-emerald-600'
+                            : 'text-red-600'
+                        }`}
+                      >
+                        {m.quantity_change >= 0 ? '+' : ''}
+                        {m.quantity_change}
+                      </td>
+                      <td className="p-3 text-ink-600">{m.reason ?? '-'}</td>
+                    </tr>
+                  ))}
+                  {movements.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="p-6 text-center text-ink-600/60"
+                      >
+                        ยังไม่มีประวัติ
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </Card>
           )}
         </>
       )}
