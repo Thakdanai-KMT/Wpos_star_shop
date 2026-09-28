@@ -4,6 +4,9 @@ import { usePromotions } from '../hooks/usePromotions'
 import { useProducts } from '../hooks/useProducts'
 import { useAuth } from '../contexts/AuthContext'
 import { ApiError } from '../lib/api-client'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import { Input, Select } from '../components/ui/Input'
 
 export default function PromotionsPage() {
   const { promotions, isLoading, error, createPromotion } = usePromotions()
@@ -68,20 +71,24 @@ export default function PromotionsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">โปรโมชั่น</h1>
+      <h1 className="text-2xl font-semibold text-brand-900 mb-1">โปรโมชั่น</h1>
+      <p className="text-sm text-ink-600 mb-6">
+        ตั้งราคาโปรโมชั่นให้สินค้า ระบบจะเตือนหากราคาต่ำกว่าต้นทุน
+      </p>
 
       {canManage && (
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-4 rounded shadow mb-6 flex gap-3 items-end flex-wrap"
-        >
-          <div>
-            <label className="block text-sm mb-1">สินค้า</label>
-            <select
+        <Card className="p-5 mb-6">
+          <form
+            onSubmit={handleSubmit}
+            className="flex gap-3 items-end flex-wrap"
+          >
+            <Select
+              id="product"
+              label="สินค้า"
               value={productId}
               onChange={(e) => setProductId(e.target.value)}
               required
-              className="border rounded px-2 py-1"
+              className="w-full sm:w-64"
             >
               <option value="">-- เลือกสินค้า --</option>
               {products.map((p) => (
@@ -89,103 +96,136 @@ export default function PromotionsPage() {
                   {p.product_name}
                 </option>
               ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm mb-1">ราคาโปรโมชั่น</label>
-            <input
-              type="number"
-              step="0.01"
-              value={salePrice}
-              onChange={(e) => setSalePrice(e.target.value)}
-              required
-              className="border rounded px-2 py-1 w-32"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-          >
-            {isSubmitting ? 'กำลังบันทึก...' : 'เพิ่มโปรโมชั่น'}
-          </button>
-          {formError && <p className="text-red-600 text-sm w-full">{formError}</p>}
-        </form>
+            </Select>
+
+            <div className="w-40">
+              <Input
+                id="sale_price"
+                label="ราคาโปรโมชั่น"
+                type="number"
+                step="0.01"
+                value={salePrice}
+                onChange={(e) => setSalePrice(e.target.value)}
+                required
+              />
+            </div>
+
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'กำลังบันทึก...' : 'เพิ่มโปรโมชั่น'}
+            </Button>
+
+            {formError && (
+              <p className="text-red-600 text-sm w-full">{formError}</p>
+            )}
+          </form>
+        </Card>
       )}
 
-      {isLoading && <p>กำลังโหลด...</p>}
-      {error && <p className="text-red-600">{error}</p>}
+      {isLoading && <p className="text-ink-600 text-sm">กำลังโหลด...</p>}
+      {error && <p className="text-red-600 text-sm">{error}</p>}
 
       {!isLoading && !error && (
-        <table className="w-full bg-white rounded shadow">
-          <thead>
-            <tr className="border-b text-left text-sm text-gray-500">
-              <th className="p-3">สินค้า</th>
-              <th className="p-3">ราคาโปรโมชั่น</th>
-              <th className="p-3">สถานะ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {promotions.map((promo) => (
-              <tr key={promo.id} className="border-b text-sm">
-                <td className="p-3">{getProductName(promo.product_id)}</td>
-                <td className="p-3">{promo.sale_price.toLocaleString()} บาท</td>
-                <td className="p-3">
-                  {promo.is_below_cost ? (
-                    <span className="text-red-600">ต่ำกว่าทุน</span>
-                  ) : (
-                    <span className="text-green-600">ปกติ</span>
-                  )}
-                </td>
+        <Card className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[480px]">
+            <thead>
+              <tr className="text-left text-ink-600 bg-surface">
+                <th className="p-3 font-medium">สินค้า</th>
+                <th className="p-3 font-medium">ราคาโปรโมชั่น</th>
+                <th className="p-3 font-medium">สถานะ</th>
               </tr>
-            ))}
-            {promotions.length === 0 && (
-              <tr>
-                <td colSpan={3} className="p-3 text-center text-gray-400">
-                  ยังไม่มีโปรโมชั่น
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {promotions.map((promo) => (
+                <tr key={promo.id} className="border-t border-black/5">
+                  <td className="p-3 text-ink-900">
+                    {getProductName(promo.product_id)}
+                  </td>
+                  <td className="p-3 text-ink-900 font-medium">
+                    {promo.sale_price.toLocaleString()} บาท
+                  </td>
+                  <td className="p-3">
+                    <span
+                      className={`inline-block text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                        promo.is_below_cost
+                          ? 'bg-red-50 text-red-600'
+                          : 'bg-emerald-50 text-emerald-700'
+                      }`}
+                    >
+                      {promo.is_below_cost ? 'ต่ำกว่าทุน' : 'ปกติ'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {promotions.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="p-6 text-center text-ink-600/60">
+                    ยังไม่มีโปรโมชั่น
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </Card>
       )}
 
       {/* Popup ยืนยันราคาต่ำกว่าทุน */}
       {confirmData && (
         <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
           onClick={() => setConfirmData(null)}
         >
           <div
-            className="bg-white rounded shadow p-6 w-80"
+            className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="font-bold text-lg mb-3 text-red-600">
-              ⚠ ราคาต่ำกว่าต้นทุน
-            </h2>
-            <p className="text-sm mb-1">สินค้า: {confirmData.productName}</p>
-            <p className="text-sm mb-1">
-              ต้นทุน: {confirmData.costPrice.toLocaleString()} บาท
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center text-sm font-bold">
+                !
+              </span>
+              <h2 className="text-lg font-semibold text-brand-900">
+                ราคาต่ำกว่าต้นทุน
+              </h2>
+            </div>
+
+            <div className="bg-surface rounded-lg p-3 mb-4 text-sm space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-ink-600">สินค้า</span>
+                <span className="text-ink-900 font-medium">
+                  {confirmData.productName}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-ink-600">ต้นทุน</span>
+                <span className="text-ink-900">
+                  {confirmData.costPrice.toLocaleString()} บาท
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-ink-600">ราคาที่ตั้ง</span>
+                <span className="text-red-600 font-medium">
+                  {confirmData.requestedSalePrice.toLocaleString()} บาท
+                </span>
+              </div>
+            </div>
+
+            <p className="text-sm text-ink-600 mb-5">
+              การขายที่ราคานี้จะขาดทุน ยืนยันที่จะตั้งราคาต่ำกว่าต้นทุนหรือไม่?
             </p>
-            <p className="text-sm mb-4">
-              ราคาที่ตั้ง: {confirmData.requestedSalePrice.toLocaleString()} บาท
-            </p>
-            <p className="text-sm text-gray-600 mb-4">
-              ยืนยันที่จะตั้งราคาต่ำกว่าต้นทุนหรือไม่?
-            </p>
+
             <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => setConfirmData(null)}
+                className="flex-1"
+              >
+                ยกเลิก
+              </Button>
               <button
                 onClick={() => submitPromotion(true)}
                 disabled={isSubmitting}
-                className="flex-1 bg-red-600 text-white py-2 rounded disabled:opacity-50"
+                className="flex-1 bg-red-600 text-white rounded-lg text-sm py-2 hover:bg-red-700 transition-colors disabled:opacity-50"
               >
-                ยืนยัน
-              </button>
-              <button
-                onClick={() => setConfirmData(null)}
-                className="flex-1 border rounded py-2"
-              >
-                ยกเลิก
+                {isSubmitting ? 'กำลังบันทึก...' : 'ยืนยัน'}
               </button>
             </div>
           </div>
