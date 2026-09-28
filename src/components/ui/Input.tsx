@@ -1,4 +1,9 @@
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
+import type {
+  InputHTMLAttributes,
+  ReactNode,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+} from 'react'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -64,6 +69,31 @@ export function Select({
       >
         {children}
       </select>
+    </div>
+  )
+}
+interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string
+}
+
+export function Textarea({
+  label,
+  className = '',
+  id,
+  ...props
+}: TextareaProps) {
+  return (
+    <div>
+      {label && (
+        <label htmlFor={id} className="block text-sm text-ink-600 mb-1.5">
+          {label}
+        </label>
+      )}
+      <textarea
+        id={id}
+        className={`w-full border border-brand-100 rounded-lg px-3 py-2 text-sm text-ink-900 bg-surface focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent disabled:bg-gray-50 disabled:text-ink-600 ${className}`}
+        {...props}
+      />
     </div>
   )
 }
