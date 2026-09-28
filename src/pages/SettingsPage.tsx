@@ -3,6 +3,9 @@ import type { FormEvent } from 'react'
 import { useSettings } from '../hooks/useSettings'
 import { useAuth } from '../contexts/AuthContext'
 import { ApiError } from '../lib/api-client'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import { Input, Textarea } from '../components/ui/Input'
 
 export default function SettingsPage() {
   const { settings, isLoading, error, updateSettings } = useSettings()
@@ -58,78 +61,104 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">ตั้งค่าระบบ</h1>
+      <h1 className="text-2xl font-semibold text-brand-900 mb-1">
+        ตั้งค่าระบบ
+      </h1>
+      <p className="text-sm text-ink-600 mb-6">
+        กำหนดค่าพื้นฐานของร้านค้า เช่น เกณฑ์สต็อกต่ำและอัตราภาษี
+      </p>
 
-      {isLoading && <p>กำลังโหลด...</p>}
-      {error && <p className="text-red-600">{error}</p>}
+      {isLoading && <p className="text-ink-600 text-sm">กำลังโหลด...</p>}
+      {error && <p className="text-red-600 text-sm">{error}</p>}
 
       {!isLoading && !error && settings && (
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-6 rounded shadow max-w-md flex flex-col gap-4"
-        >
-          <div>
-            <label className="block text-sm mb-1">
-              จำนวนสต็อกขั้นต่ำ (แจ้งเตือนเมื่อต่ำกว่านี้)
-            </label>
-            <input
-              type="number"
-              min={0}
-              value={lowStockThreshold}
-              onChange={(e) => setLowStockThreshold(e.target.value)}
-              disabled={!canEdit}
-              required
-              className="border rounded px-2 py-1 w-full disabled:bg-gray-100"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="max-w-xl">
+          {!canEdit && (
+            <div className="bg-gold-500/10 text-gold-600 text-sm rounded-lg px-4 py-3 mb-4">
+              คุณดูการตั้งค่าได้อย่างเดียว เฉพาะผู้ดูแลระบบ (ADMIN) เท่านั้นที่แก้ไขได้
+            </div>
+          )}
 
-          <div>
-            <label className="block text-sm mb-1">อัตราภาษี VAT (%)</label>
-            <input
-              type="number"
-              min={0}
-              max={100}
-              step="0.01"
-              value={vatRate}
-              onChange={(e) => setVatRate(e.target.value)}
-              disabled={!canEdit}
-              required
-              className="border rounded px-2 py-1 w-full disabled:bg-gray-100"
-            />
-          </div>
+          <Card className="p-6 mb-4">
+            <h2 className="text-sm font-semibold text-brand-900 mb-4">
+              การตั้งค่าทั่วไป
+            </h2>
 
-          <div>
-            <label className="block text-sm mb-1">
-              ข้อมูลเพิ่มเติม (JSON)
-            </label>
-            <textarea
+            <div className="flex flex-col gap-5">
+              <div>
+                <Input
+                  id="low_stock_threshold"
+                  label="จำนวนสต็อกขั้นต่ำ"
+                  type="number"
+                  min={0}
+                  value={lowStockThreshold}
+                  onChange={(e) => setLowStockThreshold(e.target.value)}
+                  disabled={!canEdit}
+                  required
+                  className="w-full sm:w-48"
+                />
+                <p className="text-xs text-ink-600/70 mt-1.5">
+                  แจ้งเตือนเมื่อสินค้าเหลือน้อยกว่าหรือเท่ากับจำนวนนี้
+                </p>
+              </div>
+
+              <div>
+                <Input
+                  id="vat_rate"
+                  label="อัตราภาษีมูลค่าเพิ่ม VAT (%)"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="0.01"
+                  value={vatRate}
+                  onChange={(e) => setVatRate(e.target.value)}
+                  disabled={!canEdit}
+                  required
+                  className="w-full sm:w-48"
+                />
+                <p className="text-xs text-ink-600/70 mt-1.5">
+                  ใส่ค่าระหว่าง 0 – 100
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 mb-4">
+            <h2 className="text-sm font-semibold text-brand-900 mb-1">
+              ข้อมูลเพิ่มเติม
+            </h2>
+            <p className="text-xs text-ink-600/70 mb-4">
+              รูปแบบ JSON สำหรับค่าตั้งค่าอื่นๆ ที่ยืดหยุ่น
+              ค่าที่ระบุจะถูกรวมเข้ากับของเดิม ไม่ทับทั้งหมด
+            </p>
+            <Textarea
+              id="extra"
               value={extraText}
               onChange={(e) => setExtraText(e.target.value)}
               disabled={!canEdit}
-              rows={6}
-              className="border rounded px-2 py-1 w-full font-mono text-sm disabled:bg-gray-100"
+              rows={7}
+              spellCheck={false}
+              className="font-mono text-xs"
             />
-          </div>
+          </Card>
 
-          {canEdit && (
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-            >
-              {isSubmitting ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}
-            </button>
-          )}
-
-          {!canEdit && (
-            <p className="text-sm text-gray-400">
-              เฉพาะ ADMIN เท่านั้นที่แก้ไขการตั้งค่าได้
+          {formError && (
+            <p className="text-red-600 text-sm mb-3" role="alert">
+              {formError}
             </p>
           )}
 
-          {formError && <p className="text-red-600 text-sm">{formError}</p>}
-          {saveSuccess && (
-            <p className="text-green-600 text-sm">บันทึกสำเร็จ! ✓</p>
+          {canEdit && (
+            <div className="flex items-center gap-3">
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}
+              </Button>
+              {saveSuccess && (
+                <span className="text-emerald-600 text-sm">
+                  บันทึกสำเร็จ ✓
+                </span>
+              )}
+            </div>
           )}
         </form>
       )}
