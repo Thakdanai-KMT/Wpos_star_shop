@@ -9,3 +9,9 @@ export interface DailySalesReport {
   total_bills: number
   top_products: TopProduct[]
 }
+export interface RangeTopProduct {
+  product_id: string
+  product_name: string
+  quantity_sold: number
+  revenue: number
+}
