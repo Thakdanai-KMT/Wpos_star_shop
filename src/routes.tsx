@@ -13,12 +13,12 @@ import PromotionsPage from './pages/PromotionsPage'
 import ReportsPage from './pages/ReportsPage'
 import AuditLogsPage from './pages/AuditLogsPage'
 import SettingsPage from './pages/SettingsPage'
+import LoadingScreen from './components/ui/LoadingScreen'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth()
-
   if (isLoading) {
-    return <div className="p-8">Loading...</div>
+    return <LoadingScreen />
   }
 
   if (!user) {
