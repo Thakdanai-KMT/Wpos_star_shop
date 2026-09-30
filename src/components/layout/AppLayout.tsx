@@ -49,8 +49,8 @@ export default function AppLayout() {
   const displayName = user?.full_name ?? user?.email ?? ''
 
   return (
-    <div className="flex">
-      <div className="hidden md:block">
+    <div className="flex min-h-screen">
+      <div className="hidden md:block sticky top-0 h-screen shrink-0">
         <Sidebar />
       </div>
 
@@ -59,7 +59,10 @@ export default function AppLayout() {
           className="fixed inset-0 z-40 bg-black/40 md:hidden"
           onClick={() => setIsMenuOpen(false)}
         >
-          <div onClick={(e) => e.stopPropagation()} className="h-full">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="h-full w-64"
+          >
             <Sidebar onNavigate={() => setIsMenuOpen(false)} />
           </div>
         </div>
