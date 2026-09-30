@@ -34,7 +34,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
   )
 
   return (
-    <aside className="w-64 bg-brand-900 text-white/90 min-h-screen flex flex-col">
+        <aside className="w-64 bg-brand-900 text-white/90 h-full flex flex-col overflow-y-auto">
       <div className="px-5 py-6 border-b border-white/10">
         <p className="text-gold-500 text-xs font-semibold tracking-wide">
           WPOS STAR SHOP
