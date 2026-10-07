@@ -8,6 +8,8 @@ export interface Product {
   is_active: boolean
   created_at: string
   updated_at: string
+  bundle_of_product_id: string | null
+  bundle_quantity: number | null
 }
 
 export interface CreateProductInput {
@@ -15,4 +17,6 @@ export interface CreateProductInput {
   unit_price: number
   cost_price: number
   category_id: string
+  bundle_of_product_id?: string
+  bundle_quantity?: number
 }

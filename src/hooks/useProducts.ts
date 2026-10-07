@@ -34,9 +34,23 @@ export function useProducts() {
   }
 
   async function deleteProduct(id: string) {
-    await apiClient.delete(`/products/${id}`)
+    await apiClient.patch(`/products/${id}`, { is_active: false })
     await fetchProducts()
   }
 
-  return { products, isLoading, error, createProduct, updateProduct, deleteProduct, refetch: fetchProducts }
+  async function setProductActive(id: string, isActive: boolean) {
+    await apiClient.patch(`/products/${id}`, { is_active: isActive })
+    await fetchProducts()
+  }
+
+  return {
+    products,
+    isLoading,
+    error,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    setProductActive,
+    refetch: fetchProducts,
+  }
 }
