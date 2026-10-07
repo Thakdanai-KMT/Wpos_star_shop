@@ -54,7 +54,7 @@ export default function PosPage() {
       !selectedCategoryId ||
       product.category_id === selectedCategoryId
 
-    return matchesSearch && matchesCategory
+    return product.is_active && matchesSearch && matchesCategory
   })
 
   // =========================================================
@@ -134,27 +134,27 @@ export default function PosPage() {
     const product = products.find(
       (item) => item.id === productId,
     )
+    const current = cart.find((item) => item.product_id === productId)
+    if (!current) {
+      return
+    }
 
-    const maxQuantity =
-      product?.stock_quantity ?? Infinity
+    setCartQuantity(productId, current.quantity + delta, product?.stock_quantity)
+  }
+
+  function setCartQuantity(
+    productId: string,
+    nextQuantity: number,
+    maxQuantity = products.find((item) => item.id === productId)?.stock_quantity,
+  ) {
+    const cap = maxQuantity ?? Infinity
+    const quantity = Math.min(Math.max(0, Math.floor(nextQuantity)), cap)
 
     setCart((previousCart) =>
       previousCart
-        .map((item) => {
-          if (item.product_id !== productId) {
-            return item
-          }
-
-          const newQuantity = Math.min(
-            item.quantity + delta,
-            maxQuantity,
-          )
-
-          return {
-            ...item,
-            quantity: newQuantity,
-          }
-        })
+        .map((item) =>
+          item.product_id === productId ? { ...item, quantity } : item,
+        )
         .filter((item) => item.quantity > 0),
     )
   }
@@ -368,24 +368,47 @@ export default function PosPage() {
                   </button>
                 </div>
 
-                <div className="mt-1 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => updateQuantity(item.product_id, -1)}
-                      className="flex h-6 w-6 items-center justify-center rounded bg-brand-50 text-ink-900 transition-colors duration-150 hover:bg-brand-100"
+                      className="flex h-7 w-7 items-center justify-center rounded bg-brand-50 text-ink-900 transition-colors duration-150 hover:bg-brand-100"
                     >
                       -
                     </button>
 
-                    <span className="min-w-5 text-center text-ink-900">
-                      {item.quantity}
-                    </span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={
+                        products.find((product) => product.id === item.product_id)
+                          ?.stock_quantity ?? undefined
+                      }
+                      value={item.quantity}
+                      onChange={(event) => {
+                        const raw = event.target.value
+                        if (raw === '') {
+                          return
+                        }
+                        const parsed = Number(raw)
+                        if (!Number.isFinite(parsed)) {
+                          return
+                        }
+                        setCartQuantity(item.product_id, parsed)
+                      }}
+                      onBlur={(event) => {
+                        if (event.target.value === '') {
+                          setCartQuantity(item.product_id, 1)
+                        }
+                      }}
+                      className="h-7 w-14 rounded-lg border border-brand-100 bg-white text-center text-sm text-ink-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-gold-400"
+                    />
 
                     <button
                       type="button"
                       onClick={() => updateQuantity(item.product_id, 1)}
-                      className="flex h-6 w-6 items-center justify-center rounded bg-brand-50 text-ink-900 transition-colors duration-150 hover:bg-brand-100"
+                      className="flex h-7 w-7 items-center justify-center rounded bg-brand-50 text-ink-900 transition-colors duration-150 hover:bg-brand-100"
                     >
                       +
                     </button>
