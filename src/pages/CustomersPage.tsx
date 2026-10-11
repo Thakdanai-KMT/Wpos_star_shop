@@ -4,13 +4,13 @@ import { useCustomers } from '../hooks/useCustomers'
 import { useAuth } from '../contexts/AuthContext'
 import { ApiError } from '../lib/api-client'
 import type { Customer } from '../types/customer'
-
+import { canManageData } from '../lib/roles'
 export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const { customers, isLoading, error, createCustomer, updateCustomer, deleteCustomer } =
     useCustomers(searchTerm)
   const { user } = useAuth()
-  const canManage = user?.role === 'ADMIN' || user?.role === 'MANAGER'
+  const canManage = canManageData(user?.role)
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [fullName, setFullName] = useState('')

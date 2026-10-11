@@ -18,7 +18,6 @@ import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/ui/Card'
 import { Input } from '../components/ui/Input'
 import type { Sale } from '../types/sale'
-
 // =========================================================
 // Helpers — วันที่ใช้เวลาท้องถิ่นเสมอ (ไม่ใช้ toISOString เพราะเป็น UTC
 // จะทำให้บิลช่วงเที่ยงคืน–7 โมงเช้าไทยตกไปอยู่ผิดวัน)

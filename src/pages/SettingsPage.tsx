@@ -6,11 +6,11 @@ import { ApiError } from '../lib/api-client'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { Input, Textarea } from '../components/ui/Input'
-
+import { canEditSettings } from '../lib/roles'
 export default function SettingsPage() {
   const { settings, isLoading, error, updateSettings } = useSettings()
   const { user } = useAuth()
-  const canEdit = user?.role === 'ADMIN'
+  const canEdit = canEditSettings(user?.role)
 
   const [lowStockThreshold, setLowStockThreshold] = useState('')
   const [vatRate, setVatRate] = useState('')

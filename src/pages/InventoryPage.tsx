@@ -8,7 +8,7 @@ import type { MovementType } from '../types/inventory'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { Input, Select } from '../components/ui/Input'
-
+import { canManageData } from '../lib/roles'
 const MOVEMENT_LABEL: Record<string, string> = {
   RECEIVE: 'รับเข้า',
   ADJUSTMENT: 'ปรับสต็อก',
@@ -18,7 +18,7 @@ const MOVEMENT_LABEL: Record<string, string> = {
 export default function InventoryPage() {
   const { products, refetch: refetchProducts } = useProducts()
   const { user } = useAuth()
-  const canManage = user?.role === 'ADMIN' || user?.role === 'MANAGER'
+  const canManage = canManageData(user?.role)
 
   const [selectedProductId, setSelectedProductId] = useState('')
   const [productSearch, setProductSearch] = useState('')

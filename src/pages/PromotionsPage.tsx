@@ -7,12 +7,12 @@ import { ApiError } from '../lib/api-client'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { Input, Select } from '../components/ui/Input'
-
+import { canManageData } from '../lib/roles'
 export default function PromotionsPage() {
   const { promotions, isLoading, error, createPromotion } = usePromotions()
   const { products } = useProducts()
   const { user } = useAuth()
-  const canManage = user?.role === 'ADMIN' || user?.role === 'MANAGER'
+  const canManage = canManageData(user?.role)
 
   const [productId, setProductId] = useState('')
   const [salePrice, setSalePrice] = useState('')

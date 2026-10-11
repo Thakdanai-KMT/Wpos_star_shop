@@ -7,12 +7,12 @@ import type { Category } from '../types/category'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
-
+import { canManageData } from '../lib/roles'
 export default function CategoriesPage() {
   const { categories, isLoading, error, createCategory, updateCategory, deleteCategory } =
     useCategories()
   const { user } = useAuth()
-  const canManage = user?.role === 'ADMIN' || user?.role === 'MANAGER'
+  const canManage = canManageData(user?.role)
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [categoryName, setCategoryName] = useState('')

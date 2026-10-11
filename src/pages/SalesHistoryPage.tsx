@@ -6,7 +6,7 @@ import { ApiError } from '../lib/api-client'
 import type { SaleDetail } from '../types/sale'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
-
+import { canManageData } from '../lib/roles'
 const PAYMENT_LABEL: Record<string, string> = {
   CASH: 'เงินสด',
   TRANSFER: 'โอนเงิน',
@@ -17,7 +17,7 @@ export default function SalesHistoryPage() {
   const { sales, isLoading, error, getSaleDetail, cancelSale } = useSales()
   const { products } = useProducts()
   const { user } = useAuth()
-  const canCancel = user?.role === 'ADMIN' || user?.role === 'MANAGER'
+  const canCancel = canManageData(user?.role)
 
   const [selectedSale, setSelectedSale] = useState<SaleDetail | null>(null)
   const [detailError, setDetailError] = useState<string | null>(null)

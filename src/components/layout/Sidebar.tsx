@@ -10,15 +10,15 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', path: '/', roles: ['ADMIN', 'MANAGER', 'CASHIER', 'VIEWER'] },
-  { label: 'ขายสินค้า', path: '/pos', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
+  { label: 'ขายสินค้า', path: '/pos', roles: ['ADMIN', 'MANAGER', 'CASHIER', 'VIEWER'] },
   { label: 'สินค้า', path: '/products', roles: ['ADMIN', 'MANAGER', 'CASHIER', 'VIEWER'] },
   { label: 'หมวดหมู่', path: '/categories', roles: ['ADMIN', 'MANAGER', 'CASHIER', 'VIEWER'] },
   { label: 'สต็อก', path: '/inventory', roles: ['ADMIN', 'MANAGER', 'CASHIER', 'VIEWER'] },
   { label: 'ประวัติการขาย', path: '/sales', roles: ['ADMIN', 'MANAGER', 'CASHIER', 'VIEWER'] },
   { label: 'ลูกค้า', path: '/customers', roles: ['ADMIN', 'MANAGER', 'CASHIER', 'VIEWER'] },
   { label: 'โปรโมชั่น', path: '/promotions', roles: ['ADMIN', 'MANAGER', 'CASHIER', 'VIEWER'] },
-  { label: 'รายงาน', path: '/reports', roles: ['ADMIN', 'MANAGER'] },
-  { label: 'Audit Logs', path: '/audit-logs', roles: ['ADMIN'] },
+  { label: 'รายงาน', path: '/reports', roles: ['ADMIN', 'MANAGER', 'VIEWER'] },
+  { label: 'Audit Logs', path: '/audit-logs', roles: ['ADMIN', 'VIEWER'] },
   { label: 'ตั้งค่า', path: '/settings', roles: ['ADMIN', 'MANAGER', 'CASHIER', 'VIEWER'] },
 ]
 

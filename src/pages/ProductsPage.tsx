@@ -8,13 +8,13 @@ import type { Product } from '../types/product'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import { Input, Select } from '../components/ui/Input'
-
+import { canManageData } from '../lib/roles'
 export default function ProductsPage() {
   const { products, isLoading, error, createProduct, updateProduct, setProductActive } =
     useProducts()
   const { categories } = useCategories()
   const { user } = useAuth()
-  const canManage = user?.role === 'ADMIN' || user?.role === 'MANAGER'
+  const canManage = canManageData(user?.role)
 
   // editingId = null คือโหมด "เพิ่มใหม่", ถ้ามีค่าคือโหมด "กำลังแก้ไข" สินค้า id นี้อยู่
   const [editingId, setEditingId] = useState<string | null>(null)
