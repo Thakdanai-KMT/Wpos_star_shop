@@ -4,12 +4,11 @@ import { ApiError } from '../lib/api-client'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
-function todayString() {
-  return new Date().toISOString().split('T')[0]
-}
+import SalesSummarySection from '../components/reports/SalesSummarySection'
+import { todayInThailand } from '../lib/thai-date'
 
 export default function ReportsPage() {
-  const [date, setDate] = useState(todayString())
+  const [date, setDate] = useState(todayInThailand())
   const { report, isLoading, error, sendReport } = useDailySalesReport(date)
 
   const [isSending, setIsSending] = useState(false)
@@ -43,7 +42,7 @@ export default function ReportsPage() {
       <p className="text-sm text-ink-600 mb-6">
         สรุปยอดขายรายวัน พร้อมสินค้าขายดี
       </p>
-
+      <SalesSummarySection />
       <Card className="p-5 mb-6">
         <div className="flex gap-3 items-end flex-wrap">
           <div className="w-full sm:w-48">
