@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
+import NotificationBell from './NotificationBell'
+import DemoBanner from './DemoBanner'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
+import { canSeeStockAlerts } from '../../lib/roles'
 
 const ROLE_LABEL: Record<string, string> = {
   ADMIN: 'ผู้ดูแลระบบ',
@@ -98,14 +101,18 @@ export default function AppLayout() {
             )}
           </div>
 
-          <button
-            onClick={() => supabase.auth.signOut()}
-            className="flex items-center gap-1.5 text-sm text-ink-600 hover:text-red-600 transition-colors shrink-0"
-          >
-            <LogoutIcon />
-            <span className="hidden sm:inline">ออกจากระบบ</span>
-          </button>
+          <div className="flex items-center gap-4 shrink-0">
+            {canSeeStockAlerts(user?.role) && <NotificationBell />}
+            <button
+              onClick={() => supabase.auth.signOut()}
+              className="flex items-center gap-1.5 text-sm text-ink-600 hover:text-red-600 transition-colors"
+            >
+              <LogoutIcon />
+              <span className="hidden sm:inline">ออกจากระบบ</span>
+            </button>
+          </div>
         </header>
+        <DemoBanner />
         <main className="p-4 md:p-6">
           <Outlet />
         </main>
