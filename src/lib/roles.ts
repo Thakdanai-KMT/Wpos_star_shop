@@ -15,3 +15,8 @@ export function canManageData(role?: UserRole): boolean {
 export function canEditSettings(role?: UserRole): boolean {
   return role === 'ADMIN' || role === 'VIEWER'
 }
+
+// ผู้ที่เห็นการแจ้งเตือนสต็อกใกล้หมด (CASHIER ไม่เห็น)
+export function canSeeStockAlerts(role?: UserRole): boolean {
+  return role === 'ADMIN' || role === 'MANAGER' || role === 'VIEWER'
+}
