@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
@@ -55,12 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // response.data คือข้อมูลที่ API ส่งกลับมาตามรูปแบบที่กำหนด
       const response = await apiClient.get<{ data: AuthUser }>('/auth/me')
 
-      // บันทึกข้อมูลผู้ใช้ลง State เพื่อให้ Component ต่าง ๆ นำไปใช้
+      // บันทึกข้อมูลผู้ใช้ลง State และจำว่าโหลดผู้ใช้คนนี้สำเร็จแล้ว
       setUser(response.data)
-
-
+      loadedUserId.current = response.data.id
+    } catch (err) {
       // หากเรียก API ไม่สำเร็จ ให้ล้างข้อมูลผู้ใช้ออกจาก State
       // สาเหตุอาจเป็น Token หมดอายุ เครือข่ายขัดข้อง หรือ Backend มีปัญหา
+      console.error('loadUser failed:', err)
       setUser(null)
       loadedUserId.current = null
     } finally {
