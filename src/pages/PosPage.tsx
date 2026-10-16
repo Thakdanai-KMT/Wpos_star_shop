@@ -3,9 +3,14 @@ import { QRCodeSVG } from 'qrcode.react'
 import { getPromptPayPayload } from '../lib/promptpay'
 import { useProducts } from '../hooks/useProducts'
 import { useCategories } from '../hooks/useCategories'
+import { useCustomers } from '../hooks/useCustomers'
+import { useCustomerBalances } from '../hooks/useCustomerBalances'
+import { useAuth } from '../contexts/AuthContext'
+import { canUseCredit } from '../lib/roles'
+import { addDaysThai, todayInThailand } from '../lib/thai-date'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
-import { Input, Select } from '../components/ui/Input'
+import { Input, Select, Textarea } from '../components/ui/Input'
 import type {
   CartItem,
   PaymentMethod,
@@ -19,8 +24,16 @@ export default function PosPage() {
   // Data
   // =========================================================
 
-  const { products, isLoading, error } = useProducts()
+  const { products, isLoading, error, refetch } = useProducts()
   const { categories } = useCategories()
+  const { user } = useAuth()
+  const creditAllowed = canUseCredit(user?.role)
+  const { customers } = useCustomers('')
+  const {
+    balances,
+    error: balancesError,
+    refresh: refreshBalances,
+  } = useCustomerBalances(creditAllowed)
 
   // =========================================================
   // State
@@ -36,9 +49,13 @@ export default function PosPage() {
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>('CASH')
 
+  const [customerId, setCustomerId] = useState('')
+  const [dueDate, setDueDate] = useState('')
+  const [creditNote, setCreditNote] = useState('')
+
   const [isSelling, setIsSelling] = useState(false)
   const [sellError, setSellError] = useState<string | null>(null)
-  const [sellSuccess, setSellSuccess] = useState(false)
+  const [sellSuccess, setSellSuccess] = useState<string | null>(null)
 
   // =========================================================
   // Filter Products
@@ -69,6 +86,19 @@ export default function PosPage() {
     (sum, item) => sum + item.quantity,
     0,
   )
+
+  // =========================================================
+  // Credit (ขายเชื่อ)
+  // =========================================================
+
+  const isCredit = paymentMethod === 'CREDIT'
+  const selectedCustomer = customers.find((c) => c.id === customerId)
+  const balanceRow = balances.find((b) => b.customer_id === customerId)
+  const outstanding = balanceRow?.balance ?? 0
+  const overdueAmount = balanceRow?.overdue_amount ?? 0
+  const creditLimit = selectedCustomer?.credit_limit ?? null
+  const afterBill = outstanding + cartTotal
+  const overLimit = creditLimit !== null && afterBill > creditLimit
 
   // =========================================================
   // Add Product To Cart
@@ -181,14 +211,35 @@ export default function PosPage() {
       return
     }
 
+    if (isCredit && !customerId) {
+      setSellError('การขายเชื่อต้องเลือกลูกค้า')
+      return
+    }
+
+    if (isCredit) {
+      const confirmed = window.confirm(
+        `ยืนยันขายเชื่อให้ "${selectedCustomer?.full_name ?? ''}" ยอด ${cartTotal.toLocaleString()} บาท\n` +
+          `หลังบิลนี้ลูกค้าจะมียอดค้างชำระ ${afterBill.toLocaleString()} บาท`,
+      )
+      if (!confirmed) {
+        return
+      }
+    }
+
     setSellError(null)
-    setSellSuccess(false)
+    setSellSuccess(null)
     setIsSelling(true)
 
     try {
       const input: CreateSaleInput = {
         payment_method: paymentMethod,
-
+        ...(customerId ? { customer_id: customerId } : {}),
+        ...(isCredit
+          ? {
+              due_date: dueDate || undefined,
+              credit_note: creditNote.trim() || undefined,
+            }
+          : {}),
         items: cart.map((item) => ({
           product_id: item.product_id,
           quantity: item.quantity,
@@ -197,11 +248,21 @@ export default function PosPage() {
 
       await apiClient.post('/sales', input)
 
+      setSellSuccess(isCredit ? 'บันทึกขายเชื่อสำเร็จ ✓' : 'ขายสำเร็จ! ✓')
+
       setCart([])
-      setSellSuccess(true)
+      setCustomerId('')
+      setDueDate('')
+      setCreditNote('')
+      // กลับเป็นเงินสดทุกครั้ง กันกดขายเชื่อซ้ำโดยไม่ตั้งใจ
+      setPaymentMethod('CASH')
+
+      // ดึงสต็อกและยอดค้างใหม่ ให้ตัวเลขตรงกับที่เพิ่งขาย
+      void refetch()
+      void refreshBalances()
 
       setTimeout(() => {
-        setSellSuccess(false)
+        setSellSuccess(null)
       }, 3000)
     } catch (err) {
       if (err instanceof ApiError) {
@@ -229,11 +290,7 @@ export default function PosPage() {
           ขายสินค้า
         </h1>
 
-        {/* =====================================================
-            Sticky search + category bar
-            (ปักหมุดไว้บนสุดของโซนสินค้า กันไม่ต้องเลื่อนกลับขึ้นมา
-            เวลาต้องพิมพ์ค้นหาหรือสลับหมวดหมู่ใหม่ เมื่อรายการสินค้าเยอะ)
-        ====================================================== */}
+        {/* Sticky search + category bar */}
         <div className="sticky top-0 z-10 -mx-1 bg-surface px-1 pb-3 pt-1">
           <Input
             type="text"
@@ -292,10 +349,7 @@ export default function PosPage() {
 
         {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
-        {/* =====================================================
-            Product grid — scroll เฉพาะโซนนี้ ไม่ใช่ทั้งหน้า
-            (แถบค้นหา/หมวดหมู่ด้านบนจึงอยู่นิ่งเสมอ)
-        ====================================================== */}
+        {/* Product grid — scroll เฉพาะโซนนี้ */}
         <div className="max-h-[calc(100vh-260px)] overflow-y-auto pr-1">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
             {filteredProducts.map((product) => {
@@ -445,10 +499,39 @@ export default function PosPage() {
                     setPaymentMethod(event.target.value as PaymentMethod)
                   }
                   disabled={isSelling}
+                  className="w-full"
                 >
                   <option value="CASH">เงินสด</option>
                   <option value="TRANSFER">โอนเงิน</option>
                   <option value="CARD">บัตร</option>
+                  {creditAllowed && (
+                    <option value="CREDIT">ขายเชื่อ (ค้างชำระ)</option>
+                  )}
+                </Select>
+              </div>
+
+              <div className="mb-3">
+                <Select
+                  id="sale-customer"
+                  label={
+                    isCredit
+                      ? 'ลูกค้า (จำเป็นสำหรับขายเชื่อ)'
+                      : 'ลูกค้า (ไม่บังคับ)'
+                  }
+                  value={customerId}
+                  onChange={(event) => setCustomerId(event.target.value)}
+                  disabled={isSelling}
+                  className="w-full"
+                >
+                  <option value="">
+                    {isCredit ? '— เลือกลูกค้า —' : 'ลูกค้าทั่วไป'}
+                  </option>
+                  {customers.map((customer) => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.full_name}
+                      {customer.phone ? ` (${customer.phone})` : ''}
+                    </option>
+                  ))}
                 </Select>
               </div>
 
@@ -464,13 +547,106 @@ export default function PosPage() {
                 </div>
               )}
 
+              {isCredit && (
+                <div className="mb-3 space-y-3">
+                  {customerId && (
+                    <div className="rounded-lg border border-brand-100 bg-surface p-3 text-sm">
+                      <div className="flex justify-between text-ink-600">
+                        <span>
+                          {outstanding < 0 ? 'เครดิตคงเหลือของลูกค้า' : 'ยอดค้างเดิม'}
+                        </span>
+                        <span className="text-ink-900">
+                          {Math.abs(outstanding).toLocaleString()} บาท
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-ink-600">
+                        <span>บิลนี้</span>
+                        <span className="text-ink-900">
+                          {cartTotal.toLocaleString()} บาท
+                        </span>
+                      </div>
+                      <div className="mt-1 flex justify-between border-t border-brand-100 pt-1 font-semibold text-ink-900">
+                        <span>ยอดค้างหลังบิลนี้</span>
+                        <span>{afterBill.toLocaleString()} บาท</span>
+                      </div>
+                      <div className="mt-1 flex justify-between text-xs text-ink-600">
+                        <span>วงเงินเครดิต</span>
+                        <span>
+                          {creditLimit === null
+                            ? 'ไม่จำกัด'
+                            : `${creditLimit.toLocaleString()} บาท`}
+                        </span>
+                      </div>
+
+                      {overLimit && (
+                        <p className="mt-2 rounded-md bg-red-50 px-2 py-1.5 text-xs text-red-600">
+                          ยอดค้างหลังบิลนี้เกินวงเงิน ระบบจะไม่อนุญาตให้บันทึก
+                        </p>
+                      )}
+                      {overdueAmount > 0 && (
+                        <p className="mt-2 rounded-md bg-gold-500/15 px-2 py-1.5 text-xs text-gold-600">
+                          ลูกค้ามียอดเลยกำหนดชำระ {overdueAmount.toLocaleString()} บาท
+                        </p>
+                      )}
+                      {balancesError && (
+                        <p className="mt-2 text-xs text-red-600">
+                          โหลดยอดค้างของลูกค้าไม่สำเร็จ ตัวเลขข้างบนอาจไม่ครบ
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <div>
+                    <Input
+                      id="credit-due-date"
+                      label="กำหนดชำระ (ไม่บังคับ)"
+                      type="date"
+                      min={todayInThailand()}
+                      value={dueDate}
+                      onChange={(event) => setDueDate(event.target.value)}
+                      disabled={isSelling}
+                      className="w-full"
+                    />
+                    <div className="mt-1.5 flex gap-1.5">
+                      {[7, 15, 30].map((days) => (
+                        <button
+                          key={days}
+                          type="button"
+                          onClick={() => setDueDate(addDaysThai(days))}
+                          className="rounded-full border border-brand-100 px-2.5 py-1 text-xs text-ink-600 transition-colors hover:border-gold-400 hover:text-brand-900"
+                        >
+                          {days} วัน
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Textarea
+                    id="credit-note"
+                    label="หมายเหตุ (ไม่บังคับ)"
+                    rows={2}
+                    maxLength={500}
+                    value={creditNote}
+                    onChange={(event) => setCreditNote(event.target.value)}
+                    disabled={isSelling}
+                    placeholder="เช่น สัญญาจ่ายวันเงินเดือนออก"
+                  />
+                </div>
+              )}
+
               <Button
                 type="submit"
                 variant="primary"
-                disabled={isSelling || cart.length === 0}
+                disabled={
+                  isSelling || cart.length === 0 || (isCredit && !customerId)
+                }
                 className="w-full"
               >
-                {isSelling ? 'กำลังบันทึก...' : 'ยืนยันการขาย'}
+                {isSelling
+                  ? 'กำลังบันทึก...'
+                  : isCredit
+                    ? 'บันทึกขายเชื่อ'
+                    : 'ยืนยันการขาย'}
               </Button>
 
               {sellError && (
@@ -479,11 +655,10 @@ export default function PosPage() {
             </form>
           )}
 
-          {/* Success — วางไว้นอกเงื่อนไขตะกร้า
-              เพื่อให้แสดงได้แม้ตะกร้าจะถูกล้างว่างไปแล้ว */}
+          {/* Success — วางไว้นอกเงื่อนไขตะกร้า เพื่อให้แสดงได้แม้ตะกร้าถูกล้างแล้ว */}
           {sellSuccess && (
             <p className="mt-3 text-sm font-medium text-green-600">
-              ขายสำเร็จ! ✓
+              {sellSuccess}
             </p>
           )}
         </Card>
