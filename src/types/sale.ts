@@ -1,4 +1,4 @@
-export type PaymentMethod = 'CASH' | 'TRANSFER' | 'CARD'
+export type PaymentMethod = 'CASH' | 'TRANSFER' | 'CARD' | 'CREDIT'
 
 export interface CartItem {
   product_id: string
@@ -9,8 +9,12 @@ export interface CartItem {
 
 export interface CreateSaleInput {
   payment_method: PaymentMethod
+  customer_id?: string
+  due_date?: string
+  credit_note?: string
   items: { product_id: string; quantity: number }[]
 }
+
 export type SaleStatus = 'COMPLETED' | 'CANCELLED'
 
 export interface Sale {
@@ -20,6 +24,8 @@ export interface Sale {
   total_amount: number
   payment_method: PaymentMethod
   status: SaleStatus
+  due_date: string | null
+  credit_note: string | null
   cancelled_at: string | null
   cancelled_by: string | null
   created_at: string
