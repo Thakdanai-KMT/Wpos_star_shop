@@ -35,3 +35,9 @@ export function formatThaiDateTime(date: Date): string {
     }) + ' น.'
   )
 }
+// วันที่ในอนาคตตามเวลาไทย (n วันนับจากวันนี้) รูปแบบ YYYY-MM-DD
+export function addDaysThai(days: number): string {
+  const d = new Date(`${todayInThailand()}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().slice(0, 10)
+}
