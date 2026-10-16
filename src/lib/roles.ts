@@ -20,3 +20,7 @@ export function canEditSettings(role?: UserRole): boolean {
 export function canSeeStockAlerts(role?: UserRole): boolean {
   return role === 'ADMIN' || role === 'MANAGER' || role === 'VIEWER'
 }
+// ผู้ที่เห็นตัวเลือกขายเชื่อและยอดค้างของลูกค้า (VIEWER เห็นเพื่อดูตัวอย่าง บันทึกไม่ได้)
+export function canUseCredit(role?: UserRole): boolean {
+  return role === 'ADMIN' || role === 'MANAGER' || role === 'VIEWER'
+}
